@@ -54,13 +54,15 @@ IPTABLES="
 "
 
 host="${1:-192.168.1.1}"
-user="${2:-root}"
+port="${2:-22}"
+user="${3:-root}"
+
 
 if [[ -f backup-wrt-config.sh ]]; then
   . backup-wrt-config.sh
 fi
 
-userhost="${user}@${host}"
+userhost="${user}@${host} -p ${port}"
 
 SSH="ssh -q ${userhost}"
 TAR="tar -cf -"
