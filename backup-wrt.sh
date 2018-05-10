@@ -54,13 +54,15 @@ IPTABLES="
 "
 
 host="${1:-192.168.1.1}"
-user="${2:-root}"
+port="${2:-22}"
+user="${3:-root}"
+
 
 if [[ -f backup-wrt-config.sh ]]; then
   . backup-wrt-config.sh
 fi
 
-userhost="${user}@${host}"
+userhost="${user}@${host} -p ${port}"
 
 SSH="ssh -q ${userhost}"
 TAR="tar -cf -"
@@ -101,14 +103,14 @@ DDWRT="$(grep -qi dd-wrt loginprompt.txt && echo 1)"
 
 #strings -n 8 "${CFE_BIN}" >cfe-strings.txt
 
-mtdnum=`ssh -q root@192.168.1.1 cat /proc/mtd | grep mtd | wc -l`
+mtdnum=`${SSH} cat /proc/mtd | grep mtd | wc -l`
 
-ssh -q root@192.168.1.1 cat /proc/mtd | grep mtd
+${SSH} cat /proc/mtd | grep mtd
 
 for ((i=0; i<$mtdnum;i+=1))
 do
 
-mtdname=mtd$i"_`ssh -q root@192.168.1.1 cat /proc/mtd | grep mtd$i | sed  's/^mtd[0-9].*"\(.*\)"$/\1/' | tr " " "_"`"
+mtdname=mtd$i"_"`${SSH} cat /proc/mtd | grep mtd$i | sed  's/^mtd[0-9].*\"\(.*\)"$/\1/' | tr " " "_"`
 
 if [[ -z "${DDWRT}" ]]; then
   MTD=/dev/mtd$i"ro"
@@ -122,8 +124,6 @@ ${SSH} dd if="${MTD}" >"${mtdname}.bin"
 strings -n 8 "${mtdname}" >${mtdname}-strings.txt
 
 done
-
-
 
 for cmd in ${CMDS}; do
   ${SSH} "${cmd}" >"${cmd}.txt"
